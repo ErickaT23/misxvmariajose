@@ -1930,64 +1930,6 @@ html.js-anim .section-separador.visible .separador-foto-img {
     font-size: .88rem;
 }
 
-/* Gift modal */
-.gift-modal {
-    position: fixed;
-    inset: 0;
-    z-index: 9999;
-    display: none;
-}
-
-.gift-modal.active {
-    display: block;
-}
-
-.gift-modal-backdrop {
-    position: absolute;
-    inset: 0;
-    background: rgba(0, 0, 0, 0.56);
-}
-
-.gift-modal-card {
-    position: relative;
-    width: min(430px, calc(100% - 28px));
-    margin: 10vh auto 0;
-    background: var(--white);
-    border: 1px solid var(--line);
-    padding: 22px 18px 16px;
-    text-align: center;
-}
-
-.gift-modal-close {
-    position: absolute;
-    top: 6px;
-    right: 10px;
-    font-size: 1.7rem;
-    color: var(--rose-dark);
-}
-
-.gift-modal-title {
-    margin: 0 0 8px;
-    font-family: var(--cursive);
-    font-size: 2rem;
-}
-
-.gift-modal-title,
-.gift-option-title-envelope .gift-inicial,
-.gift-option-title-envelope .gift-resto {
-    background: linear-gradient(120deg, #f5c3cc 0%, #e58a9b 20%, #d46a7f 40%, #f7aebc 50%, #d46a7f 60%, #c85a70 80%, #e58a9b 100%);
-    background-size: 200% auto;
-    -webkit-background-clip: text;
-    color: transparent;
-    animation: foilShine 10s cubic-bezier(.4, 0, .2, 1) infinite alternate;
-}
-
-.gift-modal-data,
-.gift-copy-feedback {
-    color: var(--rose-dark);
-    font-size: 1.05rem;
-}
-
 /* RSVP */
 .rsvp-form {
     margin-top: 12px;

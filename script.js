@@ -11,7 +11,6 @@ document.addEventListener('DOMContentLoaded', async function() {
     initCountdown();
     initAutoGallery();
     initRSVP();
-    initGiftModal();
 });
 
 const externalConfig = window.config || {};
@@ -19,7 +18,7 @@ const externalConfig = window.config || {};
 function resolveEventId() {
     const eventConfig = externalConfig.event || {};
     const eventIdParam = String(eventConfig.eventIdParam || 'eventId').trim() || 'eventId';
-    const defaultEventId = String(eventConfig.defaultEventId || 'misxv-ana-maria-2026').trim() || 'misxv-ana-maria-2026';
+    const defaultEventId = String(eventConfig.defaultEventId || 'Mariajose-misxv2026').trim() || 'Mariajose-misxv2026';
     const params = new URLSearchParams(window.location.search || '');
     const paramValue = String(params.get(eventIdParam) || '').trim();
     const eventId = paramValue || defaultEventId;
@@ -34,6 +33,11 @@ function resolveEventId() {
 const EventContext = resolveEventId();
 window.EventContext = EventContext;
 window.currentEventId = EventContext.eventId;
+
+const configuredDefaultEventId = String(
+    (externalConfig && externalConfig.event && externalConfig.event.defaultEventId)
+    || 'Mariajose-misxv2026'
+).trim() || 'Mariajose-misxv2026';
 
 function normalizeRemoteEventConfig(rawConfig) {
     if (!rawConfig || typeof rawConfig !== 'object') return {};
@@ -268,14 +272,17 @@ function applyFooterConfig() {
 // ============================================
 // CONFIGURACIÓN - Editar aquí los invitados
 // ============================================
+const configuredGuestSeeds = (
+    externalConfig
+    && externalConfig.guestSeedsByEvent
+    && (
+        externalConfig.guestSeedsByEvent[EventContext.eventId]
+        || externalConfig.guestSeedsByEvent[configuredDefaultEventId]
+    )
+) || {};
+
 const GuestConfig = {
-    invitados: {
-        "1": { nombre: "María López", pases: 2 },
-        "2": { nombre: "Carlos Méndez", pases: 4 },
-        "3": { nombre: "Andrea Ruiz", pases: 1 },
-        "4": { nombre: "Familia García", pases: 6 },
-        "5": { nombre: "Pedro Sánchez", pases: 2 }
-    },
+    invitados: configuredGuestSeeds,
     invitadoDefault: { nombre: "Invitado Especial", pases: 2 },
     paramId: 'id'
 };
@@ -992,68 +999,6 @@ function initRSVP() {
             console.error('Error al guardar RSVP:', error);
             if (submitBtn && !formLocked) submitBtn.disabled = false;
             showPopup('No pudimos guardar tu confirmación. Intenta nuevamente.', true);
-        }
-    });
-}
-
-function initGiftModal() {
-    const openBtn = document.getElementById('btn-account-modal');
-    const modal = document.getElementById('gift-modal');
-    const closeBtn = document.getElementById('gift-modal-close');
-    const copyBtn = document.getElementById('btn-copy-account');
-    const feedbackEl = document.getElementById('gift-copy-feedback');
-    const dataEl = document.getElementById('gift-account-data');
-
-    if (!openBtn || !modal || !closeBtn || !copyBtn || !dataEl) return;
-
-    function openModal() {
-        modal.classList.add('active');
-        modal.setAttribute('aria-hidden', 'false');
-        document.body.style.overflow = 'hidden';
-    }
-
-    function closeModal() {
-        modal.classList.remove('active');
-        modal.setAttribute('aria-hidden', 'true');
-        document.body.style.overflow = '';
-    }
-
-    async function copyAccountData() {
-        const data = dataEl.innerText.trim();
-        try {
-            if (navigator.clipboard && window.isSecureContext) {
-                await navigator.clipboard.writeText(data);
-            } else {
-                const textarea = document.createElement('textarea');
-                textarea.value = data;
-                textarea.setAttribute('readonly', '');
-                textarea.style.position = 'absolute';
-                textarea.style.left = '-9999px';
-                document.body.appendChild(textarea);
-                textarea.select();
-                document.execCommand('copy');
-                document.body.removeChild(textarea);
-            }
-            if (feedbackEl) feedbackEl.textContent = 'Datos copiados al portapapeles.';
-        } catch {
-            if (feedbackEl) feedbackEl.textContent = 'No se pudo copiar. Intenta de nuevo.';
-        }
-    }
-
-    openBtn.addEventListener('click', openModal);
-    closeBtn.addEventListener('click', closeModal);
-
-    modal.addEventListener('click', function(event) {
-        if (event.target.dataset.modalClose === 'true') {
-            closeModal();
-        }
-    });
-
-    copyBtn.addEventListener('click', copyAccountData);
-
-    document.addEventListener('keydown', function(event) {
-        if (event.key === 'Escape' && modal.classList.contains('active')) {
-            closeModal();
         }
     });
 }

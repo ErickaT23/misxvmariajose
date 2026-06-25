@@ -1,6 +1,6 @@
 const config = {
     event: {
-        defaultEventId: "misxv-ana-maria-2026",
+        defaultEventId: "Mariajose-misxv2026",
         eventIdParam: "eventId",
         legacyFallback: {
             read: false,
@@ -13,6 +13,19 @@ const config = {
         adminKey: "twodesign123",
         keyParam: "key",
         legacyKeyParam: "admin"
+    },
+
+    guestSeedsByEvent: {
+        "Mariajose-misxv2026": {
+            "1": {
+                nombre: "Valeria Demo",
+                pases: 2
+            },
+            "2": {
+                nombre: "Familia Prueba",
+                pases: 4
+            }
+        }
     },
 
     seo: {
