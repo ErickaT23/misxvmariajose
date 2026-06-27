@@ -2147,6 +2147,10 @@ html.js-anim .gallery-auto-section.visible .gallery-auto-slider {
     object-position: center;
 }
 
+.gallery-auto-slide--contain img {
+    object-fit: contain;
+}
+
 /* Footer */
 .footer {
     padding: 20px 18px 30px;
@@ -2717,4 +2721,48 @@ html.js-anim .section.visible :is(.event-icon, .playlist-icon, .media-share-icon
         animation: none !important;
         transition: none !important;
     }
+}
+
+/* Ajuste premium fotos XV */
+img[src*="foto-"],
+img[src*="gallery-"] {
+  object-fit: cover;
+  filter: brightness(1.08) contrast(1.08) saturate(1.08) sepia(0.04);
+}
+
+/* Ajustes individuales */
+img[src*="foto-1"] {
+  object-position: center center;
+}
+
+img[src*="foto-2"] {
+  object-position: center 35%;
+}
+
+img[src*="foto-3"] {
+  object-position: center 30%;
+}
+
+img[src*="foto-4"] {
+  object-position: center center;
+}
+
+img[src*="foto-5"] {
+  object-position: center 35%;
+}
+
+img[src*="gallery-1"] {
+  object-position: center 35%;
+}
+
+img[src*="gallery-2"] {
+  object-position: center 30%;
+}
+
+img[src*="gallery-3"] {
+  object-position: center 35%;
+}
+
+img[src*="gallery-4"] {
+  object-position: center center;
 }
