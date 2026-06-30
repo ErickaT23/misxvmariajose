@@ -359,6 +359,7 @@ const InvitadoApp = {
         const lugaresEl = document.querySelector('.invitado-lugares');
         if (!lugaresEl) return;
 
+        const totalPases = Math.max(1, Number(pases) || 1);
         const template = String(SiteConfig.textos.mensajePases || '');
         if (!template.includes('{pases}')) {
             lugaresEl.textContent = template;
@@ -368,11 +369,11 @@ const InvitadoApp = {
         const parts = template.split('{pases}');
         const numeroEl = document.createElement('span');
         numeroEl.id = 'numero-lugares';
-        numeroEl.textContent = String(pases);
+        numeroEl.textContent = String(totalPases);
 
         const textoEl = document.createElement('span');
         textoEl.id = 'texto-lugares';
-        textoEl.textContent = parts[1] || '';
+        textoEl.textContent = totalPases === 1 ? ' lugar especial' : (parts[1] || '');
 
         lugaresEl.replaceChildren(
             document.createTextNode(parts[0] || ''),
