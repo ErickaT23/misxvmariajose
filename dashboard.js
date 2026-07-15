@@ -1,4 +1,4 @@
-import { subscribeToConfirmations, subscribeToInvitados } from "./database.js";
+import { getEventConfig, subscribeToConfirmations, subscribeToEventConfig, subscribeToInvitados } from "./database.js";
 
 const configuredDefaultEventId = String(
     (window.config && window.config.event && window.config.event.defaultEventId)
@@ -440,9 +440,64 @@ function renderTable(rows, emptyMessage) {
     renderMobileCards(rows, emptyMessage);
 }
 
-document.addEventListener("DOMContentLoaded", function () {
+function buildDashboardStateConfig(remoteConfig) {
+    const localState = (window.config && window.config.estado) || {};
+    const remoteState = (remoteConfig && remoteConfig.estado) || {};
+    return {
+        invitacionActiva: true,
+        mensajeDashboardInactivo: "Acceso inactivo, comunicate con el proveedor para reactivar.",
+        ...localState,
+        ...remoteState
+    };
+}
+
+function isDashboardActive(remoteConfig) {
+    return buildDashboardStateConfig(remoteConfig).invitacionActiva !== false;
+}
+
+function renderInactiveDashboard(remoteConfig) {
+    document.body.classList.add("dashboard-inactive");
+
+    let overlay = document.getElementById("dashboard-inactive-overlay");
+    if (!overlay) {
+        overlay = document.createElement("section");
+        overlay.id = "dashboard-inactive-overlay";
+        overlay.className = "dashboard-inactive-overlay";
+        overlay.setAttribute("role", "alertdialog");
+        overlay.setAttribute("aria-modal", "true");
+        overlay.innerHTML = [
+            '<div class="dashboard-inactive-modal">',
+            '<p class="dashboard-inactive-kicker">Aviso</p>',
+            '<h2 class="dashboard-inactive-title">Acceso inactivo</h2>',
+            '<p class="dashboard-inactive-message"></p>',
+            '</div>'
+        ].join("");
+        document.body.appendChild(overlay);
+    }
+
+    const messageEl = overlay.querySelector(".dashboard-inactive-message");
+    if (messageEl) {
+        messageEl.textContent = String(buildDashboardStateConfig(remoteConfig).mensajeDashboardInactivo || "").trim();
+    }
+}
+
+document.addEventListener("DOMContentLoaded", async function () {
     const eventContext = resolveDashboardEventContext();
     const activeEventId = eventContext.eventId;
+    const remoteConfig = await getEventConfig(activeEventId);
+
+    if (!isDashboardActive(remoteConfig)) {
+        renderInactiveDashboard(remoteConfig);
+        subscribeToEventConfig(activeEventId, function (nextConfig) {
+            if (!isDashboardActive(nextConfig)) {
+                renderInactiveDashboard(nextConfig);
+                return;
+            }
+            window.location.reload();
+        });
+        return;
+    }
+
     const eventBadge = document.getElementById("dashboard-event-current");
     if (eventBadge) {
         eventBadge.textContent = "Evento activo: " + activeEventId;
@@ -542,6 +597,12 @@ document.addEventListener("DOMContentLoaded", function () {
 
     const initialRows = buildRows([], fallbackGuestDirectory);
     updateDashboard(initialRows);
+
+    subscribeToEventConfig(activeEventId, function (nextConfig) {
+        if (!isDashboardActive(nextConfig)) {
+            renderInactiveDashboard(nextConfig);
+        }
+    });
 
     subscribeToConfirmations(
         activeEventId,

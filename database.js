@@ -316,6 +316,27 @@ function parseEventConfigSeedArgs(arg1, arg2) {
   };
 }
 
+function isPlainObject(value) {
+  return Boolean(value) && Object.prototype.toString.call(value) === "[object Object]";
+}
+
+function mergeConfigObjects(baseValue, patchValue) {
+  const base = isPlainObject(baseValue) ? baseValue : {};
+  const patch = isPlainObject(patchValue) ? patchValue : {};
+  const result = { ...base };
+
+  Object.keys(patch).forEach(function (key) {
+    const nextValue = patch[key];
+    if (isPlainObject(nextValue) && isPlainObject(base[key])) {
+      result[key] = mergeConfigObjects(base[key], nextValue);
+      return;
+    }
+    result[key] = nextValue;
+  });
+
+  return result;
+}
+
 function parseLegacyMigrationArgs(arg1, arg2) {
   return {
     eventId: arg1,
@@ -646,6 +667,17 @@ async function getEventConfig(eventId) {
     console.warn("No se pudo leer configuración del evento:", error);
     return null;
   }
+}
+
+async function updateEventConfig(arg1, arg2) {
+  const parsed = parseEventAndPayloadArgs(arg1, arg2);
+  const eventId = resolveEventId(parsed.eventId);
+  const payload = isPlainObject(parsed.payload) ? parsed.payload : {};
+  const currentConfig = await getEventConfig(eventId);
+  const nextConfig = mergeConfigObjects(currentConfig, payload);
+
+  await set(getEventConfigRef(eventId), nextConfig);
+  return nextConfig;
 }
 
 function subscribeToEventConfig(arg1, arg2, arg3) {
@@ -1413,6 +1445,7 @@ window.RSVPDatabase = {
   getEventBasePath,
   getEventConfigPath,
   getEventConfig,
+  updateEventConfig,
   subscribeToEventConfig,
   getEventInvitadosPath,
   getEventRsvpPath,
@@ -1444,6 +1477,7 @@ window.RSVPDatabase = {
 window.migrateLocalGuestsToFirebase = migrateLocalGuestsToFirebase;
 window.clearGuestsMigrationMark = clearGuestsMigrationMark;
 window.seedEventConfigToFirebase = seedEventConfigToFirebase;
+window.updateEventConfig = updateEventConfig;
 window.seedEventData = seedEventData;
 window.clearEventConfigMigrationMark = clearEventConfigMigrationMark;
 window.migrateLegacyRsvpToEvent = migrateLegacyRsvpToEvent;
@@ -1456,6 +1490,7 @@ export {
   getEventBasePath,
   getEventConfigPath,
   getEventConfig,
+  updateEventConfig,
   subscribeToEventConfig,
   getEventInvitadosPath,
   getEventRsvpPath,

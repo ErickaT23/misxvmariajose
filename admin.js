@@ -24,6 +24,7 @@
     const state = {
         eventId: "",
         db: null,
+        eventConfig: null,
         invitadosMap: new Map(),
         confirmations: [],
         rows: [],
@@ -94,6 +95,36 @@
         if (!msgEl) return;
         msgEl.textContent = message || "";
         msgEl.style.color = isError ? "#8b1e1e" : "#6c6161";
+    }
+
+    function getEventStateConfig() {
+        const localState = (window.config && window.config.estado) || {};
+        const remoteState = (state.eventConfig && state.eventConfig.estado) || {};
+        return {
+            ...localState,
+            ...remoteState
+        };
+    }
+
+    function isInvitationActive() {
+        return getEventStateConfig().invitacionActiva !== false;
+    }
+
+    function renderEventStatusControls() {
+        const badge = getEl("event-status-badge");
+        const activateBtn = getEl("btn-activate-event");
+        const deactivateBtn = getEl("btn-deactivate-event");
+        const active = isInvitationActive();
+        const buttonsEnabled = Boolean(state.db);
+
+        if (badge) {
+            badge.textContent = active ? "Activo" : "Inactivo";
+            badge.classList.toggle("is-active", active);
+            badge.classList.toggle("is-inactive", !active);
+        }
+
+        if (activateBtn) activateBtn.disabled = !buttonsEnabled || active;
+        if (deactivateBtn) deactivateBtn.disabled = !buttonsEnabled || !active;
     }
 
     function toggleInviteForm(show) {
@@ -224,6 +255,33 @@
         } catch (error) {
             console.error("Error al copiar todos los links:", error);
             setStatus("No se pudieron copiar todos los links.", true);
+        }
+    }
+
+    async function setEventActiveState(active) {
+        if (!state.db || typeof state.db.updateEventConfig !== "function") {
+            setStatus("No se pudo actualizar el estado del evento.", true);
+            return;
+        }
+
+        const nextActive = Boolean(active);
+        const currentState = getEventStateConfig();
+        setStatus("Actualizando estado del evento...", false);
+
+        try {
+            const nextConfig = await state.db.updateEventConfig(state.eventId, {
+                estado: {
+                    ...currentState,
+                    invitacionActiva: nextActive
+                }
+            });
+
+            state.eventConfig = nextConfig;
+            renderEventStatusControls();
+            setStatus(nextActive ? "Invitacion y dashboard reactivados." : "Invitacion y dashboard desactivados.", false);
+        } catch (error) {
+            console.error("No se pudo actualizar el estado del evento:", error);
+            setStatus("No se pudo actualizar el estado del evento.", true);
         }
     }
 
@@ -1276,6 +1334,20 @@
             downloadAllQrsBtn.addEventListener("click", downloadAllActiveQrs);
         }
 
+        const activateEventBtn = getEl("btn-activate-event");
+        if (activateEventBtn) {
+            activateEventBtn.addEventListener("click", function () {
+                setEventActiveState(true);
+            });
+        }
+
+        const deactivateEventBtn = getEl("btn-deactivate-event");
+        if (deactivateEventBtn) {
+            deactivateEventBtn.addEventListener("click", function () {
+                setEventActiveState(false);
+            });
+        }
+
         const toggleInviteBtn = getEl("btn-toggle-invite-form");
         if (toggleInviteBtn) {
             toggleInviteBtn.addEventListener("click", function () {
@@ -1318,6 +1390,18 @@
     }
 
     function subscribeData(db) {
+        const unsubscribeEventConfig = db.subscribeToEventConfig(
+            state.eventId,
+            function (eventConfig) {
+                state.eventConfig = eventConfig;
+                renderEventStatusControls();
+            },
+            function (error) {
+                console.error("Error al sincronizar configuracion del evento:", error);
+                setStatus("Error sincronizando configuracion del evento.", true);
+            }
+        );
+
         const unsubscribeConfirmations = db.subscribeToConfirmations(
             state.eventId,
             function (confirmations) {
@@ -1342,6 +1426,9 @@
             }
         );
 
+        if (typeof unsubscribeEventConfig === "function") {
+            state.unsubscribers.push(unsubscribeEventConfig);
+        }
         if (typeof unsubscribeConfirmations === "function") {
             state.unsubscribers.push(unsubscribeConfirmations);
         }
@@ -1361,20 +1448,24 @@
         showApp(state.eventId);
         bindEvents();
         bindResponsiveRerender();
+        renderEventStatusControls();
         setStatus("Conectando con Firebase...", false);
 
         try {
             const db = await waitForDatabase();
             if (!db
+                || typeof db.subscribeToEventConfig !== "function"
                 || typeof db.subscribeToConfirmations !== "function"
                 || typeof db.subscribeToInvitados !== "function"
                 || typeof db.createInvitado !== "function"
                 || typeof db.updateInvitado !== "function"
-                || typeof db.deleteInvitado !== "function") {
+                || typeof db.deleteInvitado !== "function"
+                || typeof db.updateEventConfig !== "function") {
                 throw new Error("RSVPDatabase incompleto para panel admin.");
             }
 
             state.db = db;
+            renderEventStatusControls();
             subscribeData(db);
         } catch (error) {
             console.error(error);

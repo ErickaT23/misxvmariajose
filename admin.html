@@ -456,6 +456,71 @@
             background: var(--surface-soft);
         }
 
+        .event-status-panel {
+            margin: 0 1.4rem 1rem;
+            padding: 1rem;
+            border: 1px solid var(--line);
+            border-radius: var(--radius-md);
+            background: linear-gradient(180deg, #ffffff 0%, #fcf9ff 100%);
+            box-shadow: var(--shadow-card);
+        }
+
+        .event-status-head {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .event-status-title {
+            margin: 0;
+            font-size: 1rem;
+            font-weight: 700;
+            color: var(--text);
+        }
+
+        .event-status-copy {
+            margin: 0.28rem 0 0;
+            font-size: 0.85rem;
+            color: var(--text-soft);
+        }
+
+        .event-status-badge {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 36px;
+            padding: 0.45rem 0.8rem;
+            border-radius: 999px;
+            font-size: 0.75rem;
+            font-weight: 800;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            border: 1px solid var(--line);
+            background: #f6efe9;
+            color: var(--brand-mocha);
+        }
+
+        .event-status-badge.is-active {
+            background: #eefaf1;
+            border-color: #b7e4c7;
+            color: #1f7a3f;
+        }
+
+        .event-status-badge.is-inactive {
+            background: #fff2f1;
+            border-color: #f3c7c5;
+            color: var(--danger-dark);
+        }
+
+        .event-status-actions {
+            margin-top: 0.9rem;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.6rem;
+        }
+
         .invite-form-grid {
             display: grid;
             grid-template-columns: minmax(220px, 1.5fr) 120px auto;
@@ -1103,6 +1168,20 @@
                     </div>
                     <p id="invite-form-msg" class="form-msg"></p>
                 </form>
+            </section>
+
+            <section class="event-status-panel" aria-label="Estado del evento">
+                <div class="event-status-head">
+                    <div>
+                        <h3 class="event-status-title">Estado de acceso</h3>
+                        <p class="event-status-copy">Activa o pausa la invitacion y el dashboard sin borrar el evento.</p>
+                    </div>
+                    <span id="event-status-badge" class="event-status-badge">Cargando...</span>
+                </div>
+                <div class="event-status-actions">
+                    <button id="btn-activate-event" class="btn btn-success" type="button">Activar invitacion</button>
+                    <button id="btn-deactivate-event" class="btn btn-action" type="button">Desactivar invitacion</button>
+                </div>
             </section>
 
             <p class="status" id="admin-status">Inicializando panel...</p>

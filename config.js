@@ -109,6 +109,12 @@ const config = {
         archivo: "audio/nuestra-cancion.mp3"
     },
 
+    estado: {
+        invitacionActiva: false,
+        mensajeInactiva: "Invitacion no disponible, el acceso ha sido suspendido y el servicio pausado. Comunicate con tu proveedor para reactivarlo.",
+        mensajeDashboardInactivo: "Acceso inactivo, comunicate con el proveedor para reactivar."
+    },
+
     evento: {
         ceremonia: {
             titulo: "Ceremonia",

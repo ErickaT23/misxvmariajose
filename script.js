@@ -4,6 +4,7 @@ document.addEventListener('DOMContentLoaded', async function() {
     await hydrateSiteConfigForEvent();
     applySiteConfig();
     await InvitadoApp.init();
+    if (applyInactiveInvitationState()) return;
     MensajeFlota.init();
     MusicaPlayer.init();
     initPortada();
@@ -93,6 +94,13 @@ function createSiteConfig(remoteConfig) {
             archivo: 'audio/nuestra-cancion.mp3',
             ...normalizedRemoteConfig.musica,
             ...externalConfig.musica
+        },
+        estado: {
+            invitacionActiva: true,
+            mensajeInactiva: 'Esta invitacion se encuentra inactiva. Si necesitas mas informacion, por favor comunicate con la persona que te compartio este enlace.',
+            mensajeDashboardInactivo: 'Acceso inactivo, comunicate con el proveedor para reactivar.',
+            ...externalConfig.estado,
+            ...normalizedRemoteConfig.estado
         },
         evento: {
             ceremonia: {
@@ -232,6 +240,62 @@ function setMetaContent(name, value) {
     const meta = document.querySelector('meta[name="' + name + '"]');
     if (!meta) return;
     meta.setAttribute('content', value);
+}
+
+function applyInactiveInvitationState() {
+    const invitationIsActive = !(SiteConfig.estado && SiteConfig.estado.invitacionActiva === false);
+    if (invitationIsActive) return false;
+
+    document.body.classList.add('invitation-inactive');
+
+    let overlay = document.getElementById('inactive-invitation-overlay');
+    if (!overlay) {
+        overlay = document.createElement('div');
+        overlay.id = 'inactive-invitation-overlay';
+        overlay.className = 'inactive-invitation-overlay';
+        overlay.setAttribute('role', 'alertdialog');
+        overlay.setAttribute('aria-modal', 'true');
+        overlay.setAttribute('aria-labelledby', 'inactive-invitation-title');
+        overlay.setAttribute('aria-describedby', 'inactive-invitation-message');
+        overlay.innerHTML = [
+            '<div class="inactive-invitation-modal">',
+            '<p class="inactive-invitation-kicker">Aviso</p>',
+            '<h2 class="inactive-invitation-title" id="inactive-invitation-title">Invitacion inactiva</h2>',
+            '<p class="inactive-invitation-message" id="inactive-invitation-message"></p>',
+            '</div>'
+        ].join('');
+        document.body.appendChild(overlay);
+    }
+
+    const messageEl = overlay.querySelector('.inactive-invitation-message');
+    if (messageEl) {
+        messageEl.textContent = String(
+            (SiteConfig.estado && SiteConfig.estado.mensajeInactiva)
+            || 'Esta invitacion se encuentra inactiva.'
+        ).trim();
+    }
+
+    const preventInteraction = function(event) {
+        event.preventDefault();
+        event.stopPropagation();
+    };
+
+    ['click', 'mousedown', 'mouseup', 'touchstart', 'touchmove', 'wheel'].forEach(function(eventName) {
+        document.addEventListener(eventName, preventInteraction, { capture: true, passive: false });
+    });
+
+    document.addEventListener('keydown', function(event) {
+        if (event.key === 'Tab' || event.key === 'Enter' || event.key === ' ') {
+            event.preventDefault();
+            event.stopPropagation();
+        }
+    }, true);
+
+    if (document.activeElement && typeof document.activeElement.blur === 'function') {
+        document.activeElement.blur();
+    }
+
+    return true;
 }
 
 function applyEventCard(selector, data) {
